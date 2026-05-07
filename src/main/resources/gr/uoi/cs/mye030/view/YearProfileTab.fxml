@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="gr.uoi.cs.mye030.view.YearProfileTabController"
+      spacing="12.0" styleClass="profile-tab">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+    <Label fx:id="titleLabel" styleClass="profile-title"/>
+
+    <Label text="Statistics" styleClass="profile-section"/>
+    <GridPane fx:id="statsGrid" hgap="12" vgap="4" styleClass="profile-meta"/>
+
+    <Label text="Publications" styleClass="profile-section"/>
+    <TabPane fx:id="publicationsTabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <tabs>
+            <Tab text="Journal">
+                <content>
+                    <TableView fx:id="journalTable">
+                        <columns>
+                            <TableColumn fx:id="journalTitleCol" text="Title" prefWidth="500"/>
+                            <TableColumn fx:id="journalAuthorsCol" text="Authors" prefWidth="500"/>
+                        </columns>
+                    </TableView>
+                </content>
+            </Tab>
+            <Tab text="Conference">
+                <content>
+                    <TableView fx:id="conferenceTable">
+                        <columns>
+                            <TableColumn fx:id="conferenceTitleCol" text="Title" prefWidth="500"/>
+                            <TableColumn fx:id="conferenceAuthorsCol" text="Authors" prefWidth="500"/>
+                        </columns>
+                    </TableView>
+                </content>
+            </Tab>
+        </tabs>
+    </TabPane>
+</VBox>

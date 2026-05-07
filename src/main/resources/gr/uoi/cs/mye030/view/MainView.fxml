@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="gr.uoi.cs.mye030.view.MainController"
+            prefWidth="1200" prefHeight="800">
+    <left>
+        <fx:include source="FilterPane.fxml" fx:id="filterPane"/>
+    </left>
+    <center>
+        <TabPane fx:id="tabPane" tabClosingPolicy="ALL_TABS">
+            <tabs>
+                <Tab text="Journals" closable="false">
+                    <content>
+                        <TableView fx:id="journalsTable">
+                            <columns>
+                                <TableColumn fx:id="journalRankCol" text="Rank" prefWidth="80"/>
+                                <TableColumn fx:id="journalTitleCol" text="Title" prefWidth="380"/>
+                                <TableColumn fx:id="journalAcronymCol" text="Acronym" prefWidth="120"/>
+                                <TableColumn fx:id="journalCountryCol" text="Country" prefWidth="160"/>
+                                <TableColumn fx:id="journalSubjectCol" text="Subject" prefWidth="220"/>
+                            </columns>
+                        </TableView>
+                    </content>
+                </Tab>
+                <Tab text="Conferences" closable="false">
+                    <content>
+                        <TableView fx:id="conferencesTable">
+                            <columns>
+                                <TableColumn fx:id="confRankCol" text="Rank" prefWidth="80"/>
+                                <TableColumn fx:id="confNameCol" text="Name" prefWidth="420"/>
+                                <TableColumn fx:id="confAcronymCol" text="Acronym" prefWidth="120"/>
+                                <TableColumn fx:id="confForCol" text="Primary FoR" prefWidth="160"/>
+                            </columns>
+                        </TableView>
+                    </content>
+                </Tab>
+                <Tab text="Authors" closable="false">
+                    <content>
+                        <TableView fx:id="authorsTable">
+                            <columns>
+                                <TableColumn fx:id="authorNameCol" text="Name" prefWidth="520"/>
+                                <TableColumn fx:id="authorArticleCountCol" text="Articles" prefWidth="120"/>
+                            </columns>
+                        </TableView>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+</BorderPane>

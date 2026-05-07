@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="gr.uoi.cs.mye030.view.ProfileTabController"
+      spacing="12.0" styleClass="profile-tab">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+    <Label fx:id="titleLabel" styleClass="profile-title"/>
+
+    <GridPane fx:id="metaGrid" hgap="12" vgap="4" styleClass="profile-meta"/>
+
+    <Label text="Statistics" styleClass="profile-section"/>
+    <GridPane fx:id="statsGrid" hgap="12" vgap="4" styleClass="profile-meta"/>
+
+    <Label text="Articles per Year" styleClass="profile-section"/>
+    <StackPane fx:id="articlesChartContainer" prefHeight="260"/>
+
+    <Label text="Authors per Year (distinct + total author-publications)" styleClass="profile-section"/>
+    <StackPane fx:id="authorsChartContainer" prefHeight="260"/>
+</VBox>

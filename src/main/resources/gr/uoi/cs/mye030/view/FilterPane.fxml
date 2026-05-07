@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="gr.uoi.cs.mye030.view.FilterPaneController"
+      spacing="8.0" prefWidth="260" styleClass="filter-pane">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+    <Label text="Filters" styleClass="filter-title"/>
+
+    <Label text="Article type"/>
+    <ChoiceBox fx:id="typeChoice"/>
+
+    <Label text="Year from"/>
+    <Spinner fx:id="yearFromSpinner" editable="true"/>
+
+    <Label text="Year to"/>
+    <Spinner fx:id="yearToSpinner" editable="true"/>
+
+    <Button fx:id="applyButton" text="Apply" onAction="#onApply" styleClass="primary-button"/>
+
+    <Label text="Year profile" styleClass="filter-title"/>
+    <Spinner fx:id="yearProfileSpinner" editable="true"/>
+    <Button fx:id="openYearProfileButton" text="Open year profile" onAction="#onOpenYearProfile"/>
+</VBox>
