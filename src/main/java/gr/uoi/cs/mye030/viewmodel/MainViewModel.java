@@ -1,6 +1,7 @@
 package gr.uoi.cs.mye030.viewmodel;
 
 import gr.uoi.cs.mye030.model.ArticleType;
+import gr.uoi.cs.mye030.model.Author;
 import gr.uoi.cs.mye030.model.Conference;
 import gr.uoi.cs.mye030.model.FilterCriteria;
 import gr.uoi.cs.mye030.model.Journal;
@@ -33,6 +34,7 @@ public final class MainViewModel {
     private final CopyOnWriteArrayList<Consumer<FilterCriteria>> profileRefreshers = new CopyOnWriteArrayList<>();
     private FilterCriteria lastFilter = FilterCriteria.empty();
     private IntConsumer yearProfileOpener;
+    private Consumer<Author> authorProfileOpener;
 
     public MainViewModel(QueryService queryService) {
         this.queryService = queryService;
@@ -51,6 +53,11 @@ public final class MainViewModel {
     public void setYearProfileOpener(IntConsumer opener) { this.yearProfileOpener = opener; }
     public void openYearProfile(int year) {
         if (yearProfileOpener != null) yearProfileOpener.accept(year);
+    }
+
+    public void setAuthorProfileOpener(Consumer<Author> opener) { this.authorProfileOpener = opener; }
+    public void openAuthorProfile(Author author) {
+        if (author != null && authorProfileOpener != null) authorProfileOpener.accept(author);
     }
 
     public void refresh(FilterCriteria f) {

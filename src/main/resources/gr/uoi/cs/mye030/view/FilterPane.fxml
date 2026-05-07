@@ -30,4 +30,8 @@
     <Label text="Year profile" styleClass="filter-title"/>
     <Spinner fx:id="yearProfileSpinner" editable="true"/>
     <Button fx:id="openYearProfileButton" text="Open year profile" onAction="#onOpenYearProfile"/>
+
+    <Label text="Find author" styleClass="filter-title"/>
+    <TextField fx:id="authorSearchField" promptText="Type a name..."/>
+    <Button fx:id="openAuthorButton" text="Open author profile" onAction="#onOpenAuthor"/>
 </VBox>

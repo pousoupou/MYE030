@@ -1,6 +1,7 @@
 package gr.uoi.cs.mye030.view;
 
 import gr.uoi.cs.mye030.model.ArticleType;
+import gr.uoi.cs.mye030.service.ChartData.AuthorListRow;
 import gr.uoi.cs.mye030.viewmodel.FilterPaneViewModel;
 import gr.uoi.cs.mye030.viewmodel.MainViewModel;
 import javafx.beans.value.ChangeListener;
@@ -12,6 +13,8 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 
+import java.util.Locale;
+
 public final class FilterPaneController {
 
     @FXML private ChoiceBox<ArticleType> typeChoice;
@@ -20,6 +23,8 @@ public final class FilterPaneController {
     @FXML private Spinner<Integer> yearProfileSpinner;
     @FXML private Button applyButton;
     @FXML private Button openYearProfileButton;
+    @FXML private TextField authorSearchField;
+    @FXML private Button openAuthorButton;
 
     private FilterPaneViewModel viewModel;
     private MainViewModel mainViewModel;
@@ -30,6 +35,8 @@ public final class FilterPaneController {
         yearFromSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 2100, 0));
         yearToSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 2100, 0));
         yearProfileSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 2100, 0));
+
+        authorSearchField.setOnAction(ev -> openMatchingAuthor());
     }
 
     public void bind(FilterPaneViewModel viewModel, MainViewModel mainViewModel) {
@@ -66,5 +73,35 @@ public final class FilterPaneController {
         Integer year = yearProfileSpinner.getValue();
         if (year == null || year <= 0) return;
         mainViewModel.openYearProfile(year);
+    }
+
+    @FXML
+    private void onOpenAuthor() {
+        openMatchingAuthor();
+    }
+
+    private void openMatchingAuthor() {
+        if (mainViewModel == null) return;
+        String raw = authorSearchField.getText();
+        if (raw == null) return;
+        String q = raw.trim().toLowerCase(Locale.ROOT);
+        if (q.isEmpty()) return;
+
+        AuthorListRow exact = null;
+        AuthorListRow prefix = null;
+        AuthorListRow contains = null;
+        for (AuthorListRow row : mainViewModel.authors()) {
+            String name = row.author().name();
+            if (name == null) continue;
+            String lower = name.toLowerCase(Locale.ROOT);
+            if (lower.equals(q)) {
+                exact = row;
+                break;
+            }
+            if (prefix == null && lower.startsWith(q)) prefix = row;
+            else if (contains == null && lower.contains(q)) contains = row;
+        }
+        AuthorListRow match = exact != null ? exact : (prefix != null ? prefix : contains);
+        if (match != null) mainViewModel.openAuthorProfile(match.author());
     }
 }

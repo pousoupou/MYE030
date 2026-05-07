@@ -54,6 +54,7 @@ public final class MainController {
         viewModel = ctx.mainViewModel();
         filterPaneController.bind(ctx.filterPaneViewModel(), viewModel);
         viewModel.setYearProfileOpener(this::openYearProfile);
+        viewModel.setAuthorProfileOpener(this::openAuthorProfile);
 
         wireJournalsTable();
         wireConferencesTable();
