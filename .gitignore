@@ -37,3 +37,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# data files (too big for github. download link in README)
+!**/src/main/resources/data/
