@@ -2,6 +2,7 @@ package gr.uoi.cs.mye030.repository;
 
 import gr.uoi.cs.mye030.model.FilterCriteria;
 import gr.uoi.cs.mye030.model.Journal;
+import gr.uoi.cs.mye030.service.ChartData.EntityBarStats;
 import gr.uoi.cs.mye030.service.ChartData.MultiYearSeries;
 import gr.uoi.cs.mye030.service.ChartData.ProfileStats;
 import gr.uoi.cs.mye030.service.ChartData.YearlyAuthorCounts;
@@ -28,4 +29,6 @@ public interface JournalRepository {
     List<MultiYearSeries> activeJournalsBySubjectAreaPerYear(Collection<String> subjectAreas, FilterCriteria f);
 
     List<String> distinctSubjectAreas();
+
+    List<EntityBarStats> barStatsForJournals(Collection<Integer> journalIds, FilterCriteria f);
 }

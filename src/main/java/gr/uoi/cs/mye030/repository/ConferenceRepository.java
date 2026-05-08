@@ -2,6 +2,7 @@ package gr.uoi.cs.mye030.repository;
 
 import gr.uoi.cs.mye030.model.Conference;
 import gr.uoi.cs.mye030.model.FilterCriteria;
+import gr.uoi.cs.mye030.service.ChartData.EntityBarStats;
 import gr.uoi.cs.mye030.service.ChartData.MultiYearSeries;
 import gr.uoi.cs.mye030.service.ChartData.ProfileStats;
 import gr.uoi.cs.mye030.service.ChartData.YearlyAuthorCounts;
@@ -26,4 +27,6 @@ public interface ConferenceRepository {
     List<MultiYearSeries> activeConferencesByPrimaryForPerYear(Collection<String> primaryFoRs, FilterCriteria f);
 
     List<String> distinctPrimaryFoRs();
+
+    List<EntityBarStats> barStatsForConferences(Collection<Integer> conferenceIds, FilterCriteria f);
 }

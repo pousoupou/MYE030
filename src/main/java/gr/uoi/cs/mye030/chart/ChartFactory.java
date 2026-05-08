@@ -6,6 +6,7 @@ import gr.uoi.cs.mye030.service.ChartData.YearCount;
 import gr.uoi.cs.mye030.service.ChartData.YearlyAuthorCounts;
 import io.fair_acc.chartfx.XYChart;
 import io.fair_acc.chartfx.axes.spi.DefaultNumericAxis;
+import io.fair_acc.chartfx.renderer.LineStyle;
 import io.fair_acc.chartfx.renderer.spi.ErrorDataSetRenderer;
 import io.fair_acc.dataset.spi.DefaultDataSet;
 import io.fair_acc.dataset.spi.DoubleDataSet;
@@ -62,6 +63,19 @@ public final class ChartFactory {
         DefaultNumericAxis yAxis = new DefaultNumericAxis(yLabel);
         XYChart chart = new XYChart(xAxis, yAxis);
         chart.getRenderers().setAll(new ErrorDataSetRenderer());
+        return chart;
+    }
+
+    public static XYChart emptyGroupedBarChart(String xLabel, String yLabel) {
+        DefaultNumericAxis xAxis = new DefaultNumericAxis(xLabel);
+        DefaultNumericAxis yAxis = new DefaultNumericAxis(yLabel);
+        XYChart chart = new XYChart(xAxis, yAxis);
+        ErrorDataSetRenderer renderer = new ErrorDataSetRenderer();
+        renderer.setDrawBars(true);
+        renderer.setShiftBar(true);
+        renderer.setDrawMarker(false);
+        renderer.setPolyLineStyle(LineStyle.NONE);
+        chart.getRenderers().setAll(renderer);
         return chart;
     }
 

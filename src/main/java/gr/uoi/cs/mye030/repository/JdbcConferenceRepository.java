@@ -3,6 +3,7 @@ package gr.uoi.cs.mye030.repository;
 import gr.uoi.cs.mye030.db.DatabaseConnectionManager;
 import gr.uoi.cs.mye030.model.Conference;
 import gr.uoi.cs.mye030.model.FilterCriteria;
+import gr.uoi.cs.mye030.service.ChartData.EntityBarStats;
 import gr.uoi.cs.mye030.service.ChartData.MultiYearSeries;
 import gr.uoi.cs.mye030.service.ChartData.ProfileStats;
 import gr.uoi.cs.mye030.service.ChartData.YearCount;
@@ -282,6 +283,74 @@ public final class JdbcConferenceRepository implements ConferenceRepository {
         List<MultiYearSeries> out = new ArrayList<>(points.size());
         for (Map.Entry<String, List<YearCount>> e : points.entrySet()) {
             out.add(new MultiYearSeries(e.getKey(), Collections.unmodifiableList(e.getValue())));
+        }
+        return out;
+    }
+
+    @Override
+    public List<EntityBarStats> barStatsForConferences(Collection<Integer> conferenceIds, FilterCriteria f) {
+        if (conferenceIds == null || conferenceIds.isEmpty()) return List.of();
+        SqlFilter sf = SqlFilter.forArticleView(f, "v", false);
+        String where = sf.whereClause();
+        String idsList = repeatPlaceholders(conferenceIds.size());
+        String composed = (where.isEmpty() ? " WHERE " : where + " AND ")
+                + "v.conference_id IN (" + idsList + ")";
+
+        String articlesSql = "SELECT v.conference_id AS id, c.conf_name AS name, "
+                + "COUNT(DISTINCT v.article_id) AS total_articles, "
+                + "MIN(v.year_pub) AS first_y, MAX(v.year_pub) AS last_y "
+                + "FROM v_conference_articles_per_year v "
+                + "JOIN conferences c ON c.id = v.conference_id"
+                + composed
+                + " GROUP BY v.conference_id, c.conf_name";
+
+        Map<Integer, String> names = new LinkedHashMap<>();
+        Map<Integer, long[]> art = new LinkedHashMap<>();
+        try (Connection c = connections.get();
+             PreparedStatement ps = c.prepareStatement(articlesSql)) {
+            int idx = sf.bindStartingAt(ps, 1);
+            for (Integer id : conferenceIds) ps.setInt(idx++, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    names.put(id, rs.getString("name"));
+                    long total = rs.getLong("total_articles");
+                    int y1 = rs.getInt("first_y"); boolean y1null = rs.wasNull();
+                    int y2 = rs.getInt("last_y");  boolean y2null = rs.wasNull();
+                    long span = (y1null || y2null) ? 0L : (y2 - y1 + 1L);
+                    art.put(id, new long[] { total, span });
+                }
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("barStatsForConferences (articles) failed", e);
+        }
+
+        String authorsSql = "SELECT v.conference_id AS id, COUNT(*) AS total_authors "
+                + "FROM v_conference_authors_per_year v"
+                + composed
+                + " GROUP BY v.conference_id";
+        Map<Integer, Long> totalAuthors = new LinkedHashMap<>();
+        try (Connection c = connections.get();
+             PreparedStatement ps = c.prepareStatement(authorsSql)) {
+            int idx = sf.bindStartingAt(ps, 1);
+            for (Integer id : conferenceIds) ps.setInt(idx++, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) totalAuthors.put(rs.getInt("id"), rs.getLong("total_authors"));
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("barStatsForConferences (authors) failed", e);
+        }
+
+        List<EntityBarStats> out = new ArrayList<>(names.size());
+        for (Map.Entry<Integer, String> e : names.entrySet()) {
+            int id = e.getKey();
+            long[] a = art.get(id);
+            long total = a[0];
+            long span = a[1];
+            long auth = totalAuthors.getOrDefault(id, 0L);
+            double avgArt = span == 0 ? 0.0 : (double) total / span;
+            double avgAuth = span == 0 ? 0.0 : (double) auth / span;
+            out.add(new EntityBarStats(id, e.getValue(), total, avgArt, avgAuth));
         }
         return out;
     }

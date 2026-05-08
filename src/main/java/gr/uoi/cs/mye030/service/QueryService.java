@@ -13,8 +13,10 @@ import gr.uoi.cs.mye030.service.ChartData.AuthorListRow;
 import gr.uoi.cs.mye030.service.ChartData.AuthorProfileStats;
 import gr.uoi.cs.mye030.service.ChartData.CategoryCount;
 import gr.uoi.cs.mye030.service.ChartData.CountryCount;
+import gr.uoi.cs.mye030.service.ChartData.EntityBarStats;
 import gr.uoi.cs.mye030.service.ChartData.MultiYearSeries;
 import gr.uoi.cs.mye030.service.ChartData.ProfileStats;
+import gr.uoi.cs.mye030.service.ChartData.PublisherJournalQuarters;
 import gr.uoi.cs.mye030.service.ChartData.YearCount;
 import gr.uoi.cs.mye030.service.ChartData.YearProfileStats;
 import gr.uoi.cs.mye030.service.ChartData.YearPublication;
@@ -177,6 +179,22 @@ public final class QueryService {
 
     public List<String> distinctPrimaryFoRs() {
         return conferences.distinctPrimaryFoRs();
+    }
+
+    public List<EntityBarStats> barStatsForJournals(Collection<Integer> journalIds, FilterCriteria f) {
+        return journals.barStatsForJournals(journalIds, f);
+    }
+
+    public List<EntityBarStats> barStatsForConferences(Collection<Integer> conferenceIds, FilterCriteria f) {
+        return conferences.barStatsForConferences(conferenceIds, f);
+    }
+
+    public List<String> distinctJournalPublishers() {
+        return articles.distinctJournalPublishers();
+    }
+
+    public List<PublisherJournalQuarters> journalQuartersByPublisher(Collection<String> publishers, FilterCriteria f) {
+        return articles.journalQuartersByPublisher(publishers, f);
     }
 
     private static List<YearCount> toYearCounts(Map<Integer, Long> counts) {

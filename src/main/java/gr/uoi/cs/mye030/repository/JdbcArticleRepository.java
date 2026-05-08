@@ -4,6 +4,7 @@ import gr.uoi.cs.mye030.db.DatabaseConnectionManager;
 import gr.uoi.cs.mye030.model.Article;
 import gr.uoi.cs.mye030.model.ArticleType;
 import gr.uoi.cs.mye030.model.FilterCriteria;
+import gr.uoi.cs.mye030.service.ChartData.PublisherJournalQuarters;
 import gr.uoi.cs.mye030.service.ChartData.YearProfileStats;
 import gr.uoi.cs.mye030.service.ChartData.YearPublication;
 
@@ -13,6 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -159,6 +161,74 @@ public final class JdbcArticleRepository implements ArticleRepository {
             }
         } catch (SQLException e) {
             throw new IllegalStateException("publicationsForYear failed", e);
+        }
+    }
+
+    @Override
+    public List<String> distinctJournalPublishers() {
+        String sql = "SELECT DISTINCT publisher FROM articles "
+                + "WHERE publisher IS NOT NULL AND publisher <> '' "
+                + "AND article_type = 'J' AND journal_id IS NOT NULL "
+                + "ORDER BY publisher";
+        try (Connection c = connections.get();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            List<String> out = new ArrayList<>();
+            while (rs.next()) out.add(rs.getString(1));
+            return out;
+        } catch (SQLException e) {
+            throw new IllegalStateException("distinctJournalPublishers failed", e);
+        }
+    }
+
+    @Override
+    public List<PublisherJournalQuarters> journalQuartersByPublisher(Collection<String> publishers, FilterCriteria f) {
+        if (publishers == null || publishers.isEmpty()) return List.of();
+        List<String> yearClauses = new ArrayList<>();
+        List<Object> yearParams = new ArrayList<>();
+        if (f != null) {
+            if (f.yearFrom() != null) { yearClauses.add("YEAR(a.date_pub) >= ?"); yearParams.add(f.yearFrom()); }
+            if (f.yearTo() != null)   { yearClauses.add("YEAR(a.date_pub) <= ?"); yearParams.add(f.yearTo()); }
+        }
+        StringBuilder placeholders = new StringBuilder(publishers.size() * 2);
+        for (int i = 0; i < publishers.size(); i++) {
+            if (i > 0) placeholders.append(',');
+            placeholders.append('?');
+        }
+        StringBuilder where = new StringBuilder("WHERE a.article_type = 'J' AND a.journal_id IS NOT NULL "
+                + "AND a.publisher IN (").append(placeholders).append(")");
+        for (String yc : yearClauses) where.append(" AND ").append(yc);
+
+        String sql = "SELECT a.publisher AS p, "
+                + "COUNT(DISTINCT a.journal_id) AS total, "
+                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 1 AND 3 THEN a.journal_id END) AS q1, "
+                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 4 AND 6 THEN a.journal_id END) AS q2, "
+                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 7 AND 9 THEN a.journal_id END) AS q3, "
+                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 10 AND 12 THEN a.journal_id END) AS q4 "
+                + "FROM articles a "
+                + where
+                + " GROUP BY a.publisher ORDER BY total DESC, a.publisher";
+        try (Connection c = connections.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            int idx = 1;
+            for (String p : publishers) ps.setString(idx++, p);
+            for (Object yp : yearParams) ps.setObject(idx++, yp);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<PublisherJournalQuarters> out = new ArrayList<>();
+                while (rs.next()) {
+                    out.add(new PublisherJournalQuarters(
+                            rs.getString("p"),
+                            rs.getLong("total"),
+                            rs.getLong("q1"),
+                            rs.getLong("q2"),
+                            rs.getLong("q3"),
+                            rs.getLong("q4")
+                    ));
+                }
+                return out;
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("journalQuartersByPublisher failed", e);
         }
     }
 

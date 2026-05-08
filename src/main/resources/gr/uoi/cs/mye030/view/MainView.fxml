@@ -56,6 +56,11 @@
                         <fx:include source="LinechartsTab.fxml"/>
                     </content>
                 </Tab>
+                <Tab text="Barcharts" closable="false">
+                    <content>
+                        <fx:include source="BarChartsTab.fxml"/>
+                    </content>
+                </Tab>
             </tabs>
         </TabPane>
     </center>

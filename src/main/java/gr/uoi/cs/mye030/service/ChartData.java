@@ -12,6 +12,12 @@ public final class ChartData {
 
     public record MultiYearSeries(String name, List<YearCount> points) {}
 
+    public record EntityBarStats(int id, String name, long totalArticles,
+                                 double avgArticlesPerYear, double avgAuthorsPerYear) {}
+
+    public record PublisherJournalQuarters(String publisher, long total,
+                                           long q1, long q2, long q3, long q4) {}
+
     public record AuthorListRow(Author author, long articleCount) {}
 
     public record AuthorProfileStats(Integer firstYear, Integer lastYear, long totalArticles) {
