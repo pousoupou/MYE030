@@ -62,10 +62,11 @@ public final class JdbcAuthorRepository implements AuthorRepository {
 
     @Override
     public List<AuthorListRow> findAll() {
-        String sql = "SELECT v.author_id AS id, v.author_name, COUNT(*) AS n "
-                + "FROM v_top_authors v"
-                + " GROUP BY v.author_id, v.author_name"
-                + " ORDER BY n DESC, v.author_name ASC";
+        String sql = "SELECT au.id AS id, au.author_name, COUNT(*) AS n "
+                + "FROM articles_authors aa"
+                + " JOIN authors au ON au.id = aa.author_id"
+                + " GROUP BY au.id, au.author_name"
+                + " ORDER BY n DESC, au.author_name ASC";
         try (Connection c = connections.get();
              PreparedStatement ps = c.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
