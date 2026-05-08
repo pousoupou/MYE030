@@ -10,6 +10,7 @@ import gr.uoi.cs.mye030.service.ChartData.PublisherJournalQuarters;
 import gr.uoi.cs.mye030.service.QueryService;
 import gr.uoi.cs.mye030.viewmodel.MainViewModel;
 import io.fair_acc.chartfx.XYChart;
+import io.fair_acc.chartfx.axes.spi.DefaultNumericAxis;
 import io.fair_acc.chartfx.renderer.spi.ErrorDataSetRenderer;
 import io.fair_acc.dataset.DataSet;
 import io.fair_acc.dataset.spi.DefaultDataSet;
@@ -45,7 +46,9 @@ public final class BarChartsTabController {
 
     @FXML private TextField entitySearchField;
     @FXML private ListView<EntityRow> entityListView;
-    @FXML private StackPane entityStatsChartContainer;
+    @FXML private StackPane totalArticlesChartContainer;
+    @FXML private StackPane avgArticlesChartContainer;
+    @FXML private StackPane avgAuthorsChartContainer;
 
     @FXML private TextField publisherSearchField;
     @FXML private ListView<PublisherRow> publisherListView;
@@ -61,8 +64,13 @@ public final class BarChartsTabController {
     private final ObservableList<PublisherRow> allPublishers = FXCollections.observableArrayList();
     private final FilteredList<PublisherRow> visiblePublishers = new FilteredList<>(allPublishers, p -> true);
 
-    private XYChart entityStatsChart;
-    private ErrorDataSetRenderer entityStatsRenderer;
+    private ErrorDataSetRenderer totalArticlesRenderer;
+    private ErrorDataSetRenderer avgArticlesRenderer;
+    private ErrorDataSetRenderer avgAuthorsRenderer;
+    private DefaultNumericAxis totalArticlesXAxis;
+    private DefaultNumericAxis avgArticlesXAxis;
+    private DefaultNumericAxis avgAuthorsXAxis;
+    private List<String> currentEntityNames = List.of();
     private XYChart publisherChart;
     private ErrorDataSetRenderer publisherRenderer;
 
@@ -75,9 +83,23 @@ public final class BarChartsTabController {
         this.mainViewModel = ctx.mainViewModel();
         this.background = mainViewModel.background();
 
-        entityStatsChart = ChartFactory.emptyGroupedBarChart("Entity", "Value");
-        entityStatsRenderer = (ErrorDataSetRenderer) entityStatsChart.getRenderers().get(0);
-        entityStatsChartContainer.getChildren().add(entityStatsChart);
+        XYChart totalArticlesChart = ChartFactory.emptyCategoryBarChart("Journals/Conferences", "Articles");
+        totalArticlesRenderer = (ErrorDataSetRenderer) totalArticlesChart.getRenderers().get(0);
+        totalArticlesXAxis = (DefaultNumericAxis) totalArticlesChart.getXAxis();
+        installEntityTickFormatter(totalArticlesXAxis);
+        totalArticlesChartContainer.getChildren().add(totalArticlesChart);
+
+        XYChart avgArticlesChart = ChartFactory.emptyCategoryBarChart("Journals/Conferences", "Articles/yr");
+        avgArticlesRenderer = (ErrorDataSetRenderer) avgArticlesChart.getRenderers().get(0);
+        avgArticlesXAxis = (DefaultNumericAxis) avgArticlesChart.getXAxis();
+        installEntityTickFormatter(avgArticlesXAxis);
+        avgArticlesChartContainer.getChildren().add(avgArticlesChart);
+
+        XYChart avgAuthorsChart = ChartFactory.emptyCategoryBarChart("Journals/Conferences", "Authors/yr");
+        avgAuthorsRenderer = (ErrorDataSetRenderer) avgAuthorsChart.getRenderers().get(0);
+        avgAuthorsXAxis = (DefaultNumericAxis) avgAuthorsChart.getXAxis();
+        installEntityTickFormatter(avgAuthorsXAxis);
+        avgAuthorsChartContainer.getChildren().add(avgAuthorsChart);
 
         publisherChart = ChartFactory.emptyGroupedBarChart("Publisher", "Distinct journals");
         publisherRenderer = (ErrorDataSetRenderer) publisherChart.getRenderers().get(0);
@@ -197,7 +219,9 @@ public final class BarChartsTabController {
         Set<Integer> ids = new LinkedHashSet<>();
         for (EntityRow r : allEntities) if (r.selectedProperty().get()) ids.add(r.id());
         if (ids.isEmpty()) {
-            entityStatsRenderer.getDatasets().clear();
+            totalArticlesRenderer.getDatasets().clear();
+            avgArticlesRenderer.getDatasets().clear();
+            avgAuthorsRenderer.getDatasets().clear();
             return;
         }
         boolean journalsMode = isJournalsMode();
@@ -234,21 +258,71 @@ public final class BarChartsTabController {
         background.submit(task);
     }
 
+    private static final String[] BAR_PALETTE = {
+            "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+            "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
+    };
+
     private void applyEntityStats(List<EntityBarStats> rows) {
-        entityStatsRenderer.getDatasets().clear();
-        if (rows == null || rows.isEmpty()) return;
+        totalArticlesRenderer.getDatasets().clear();
+        avgArticlesRenderer.getDatasets().clear();
+        avgAuthorsRenderer.getDatasets().clear();
+        if (rows == null || rows.isEmpty()) {
+            currentEntityNames = List.of();
+            return;
+        }
+
+        List<String> names = new ArrayList<>(rows.size());
+        for (EntityBarStats r : rows) names.add(r.name());
+        currentEntityNames = names;
+
+        int n = names.size();
+        configureEntityXAxis(totalArticlesXAxis, n);
+        configureEntityXAxis(avgArticlesXAxis, n);
+        configureEntityXAxis(avgAuthorsXAxis, n);
+
         DefaultDataSet total = new DefaultDataSet("Total articles");
         DefaultDataSet avgArt = new DefaultDataSet("Avg articles/yr");
         DefaultDataSet avgAuth = new DefaultDataSet("Avg authors/yr");
         for (int i = 0; i < rows.size(); i++) {
             EntityBarStats r = rows.get(i);
+            String color = BAR_PALETTE[i % BAR_PALETTE.length];
+            String style = "-fx-marker-color: " + color + "; -fx-fill: " + color + "; -fx-stroke: " + color + ";";
             total.add(i, r.totalArticles(), r.name());
+            total.addDataStyle(i, style);
             avgArt.add(i, r.avgArticlesPerYear(), r.name());
+            avgArt.addDataStyle(i, style);
             avgAuth.add(i, r.avgAuthorsPerYear(), r.name());
+            avgAuth.addDataStyle(i, style);
         }
-        List<DataSet> sets = new ArrayList<>();
-        sets.add(total); sets.add(avgArt); sets.add(avgAuth);
-        entityStatsRenderer.getDatasets().addAll(sets);
+        totalArticlesRenderer.getDatasets().add(total);
+        avgArticlesRenderer.getDatasets().add(avgArt);
+        avgAuthorsRenderer.getDatasets().add(avgAuth);
+    }
+
+    private void installEntityTickFormatter(DefaultNumericAxis axis) {
+        axis.setTickLabelFormatter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(Number n) {
+                if (n == null) return "";
+                double v = n.doubleValue();
+                int idx = (int) Math.round(v);
+                if (Math.abs(v - idx) > 1e-6) return "";
+                if (idx < 0 || idx >= currentEntityNames.size()) return "";
+                return currentEntityNames.get(idx);
+            }
+
+            @Override
+            public Number fromString(String s) { return null; }
+        });
+    }
+
+    private static void configureEntityXAxis(DefaultNumericAxis axis, int n) {
+        axis.setAutoRanging(false);
+        axis.setMin(-0.5);
+        axis.setMax(n - 0.5);
+        axis.setTickUnit(1.0);
+        axis.setMinorTickCount(0);
     }
 
     private void applyPublisherStats(List<PublisherJournalQuarters> rows) {

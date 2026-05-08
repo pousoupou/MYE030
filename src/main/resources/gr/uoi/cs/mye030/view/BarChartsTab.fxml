@@ -25,13 +25,24 @@
         <ToggleButton fx:id="conferencesToggle" text="Conferences" toggleGroup="$modeGroup"/>
     </HBox>
 
-    <Label text="Per-entity stats (Total articles, Avg articles/yr, Avg authors/yr)" styleClass="profile-section"/>
+    <Label text="Per-entity stats" styleClass="profile-section"/>
     <HBox spacing="10" VBox.vgrow="ALWAYS">
         <VBox spacing="6" prefWidth="280" minWidth="240">
             <TextField fx:id="entitySearchField" promptText="Search..."/>
             <ListView fx:id="entityListView" VBox.vgrow="ALWAYS"/>
         </VBox>
-        <StackPane fx:id="entityStatsChartContainer" HBox.hgrow="ALWAYS" minHeight="240"/>
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Total articles" styleClass="profile-section"/>
+            <StackPane fx:id="totalArticlesChartContainer" minHeight="240" VBox.vgrow="ALWAYS"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Avg articles per year" styleClass="profile-section"/>
+            <StackPane fx:id="avgArticlesChartContainer" minHeight="240" VBox.vgrow="ALWAYS"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Avg authors per year" styleClass="profile-section"/>
+            <StackPane fx:id="avgAuthorsChartContainer" minHeight="240" VBox.vgrow="ALWAYS"/>
+        </VBox>
     </HBox>
 
     <Label text="Distinct journals per quarter, by publisher (journals only)" styleClass="profile-section"/>

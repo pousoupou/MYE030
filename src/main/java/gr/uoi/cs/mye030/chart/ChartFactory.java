@@ -1,14 +1,11 @@
 package gr.uoi.cs.mye030.chart;
 
-import gr.uoi.cs.mye030.service.ChartData.CategoryCount;
-import gr.uoi.cs.mye030.service.ChartData.CountryCount;
 import gr.uoi.cs.mye030.service.ChartData.YearCount;
 import gr.uoi.cs.mye030.service.ChartData.YearlyAuthorCounts;
 import io.fair_acc.chartfx.XYChart;
 import io.fair_acc.chartfx.axes.spi.DefaultNumericAxis;
 import io.fair_acc.chartfx.renderer.LineStyle;
 import io.fair_acc.chartfx.renderer.spi.ErrorDataSetRenderer;
-import io.fair_acc.dataset.spi.DefaultDataSet;
 import io.fair_acc.dataset.spi.DoubleDataSet;
 import javafx.collections.ObservableList;
 
@@ -17,36 +14,6 @@ import java.util.List;
 public final class ChartFactory {
 
     private ChartFactory() {}
-
-    public static XYChart articlesPerYearChart(ObservableList<YearCount> data) {
-        DoubleDataSet ds = DataSetAdapters.bindYearCount("Articles per Year", data);
-        return buildChart("Year", "Articles", ds);
-    }
-
-    public static XYChart topAuthorsChart(ObservableList<CategoryCount> data) {
-        DefaultDataSet ds = DataSetAdapters.bindCategoryCount("Top Authors", data);
-        return buildChart("Author", "Articles", ds);
-    }
-
-    public static XYChart journalsByCountryChart(ObservableList<CountryCount> data) {
-        DefaultDataSet ds = DataSetAdapters.bindCountryCount("Journals by Country", data);
-        return buildChart("Country", "Journals", ds);
-    }
-
-    public static XYChart articlesByPublisherChart(ObservableList<CategoryCount> data) {
-        DefaultDataSet ds = DataSetAdapters.bindCategoryCount("Articles by Publisher", data);
-        return buildChart("Publisher", "Articles", ds);
-    }
-
-    public static XYChart conferencesByRankChart(ObservableList<CategoryCount> data) {
-        DefaultDataSet ds = DataSetAdapters.bindCategoryCount("Conferences by Rank", data);
-        return buildChart("Rank", "Conferences", ds);
-    }
-
-    public static XYChart articlesByJournalRankChart(ObservableList<CategoryCount> data) {
-        DefaultDataSet ds = DataSetAdapters.bindCategoryCount("Articles by Journal Rank", data);
-        return buildChart("Rank Bucket", "Articles", ds);
-    }
 
     public static XYChart profileArticlesPerYearChart(ObservableList<YearCount> data) {
         DoubleDataSet ds = DataSetAdapters.bindYearCount("Articles", data);
@@ -63,6 +30,25 @@ public final class ChartFactory {
         DefaultNumericAxis yAxis = new DefaultNumericAxis(yLabel);
         XYChart chart = new XYChart(xAxis, yAxis);
         chart.getRenderers().setAll(new ErrorDataSetRenderer());
+        return chart;
+    }
+
+    public static XYChart emptyCategoryBarChart(String xLabel, String yLabel) {
+        DefaultNumericAxis xAxis = new DefaultNumericAxis(xLabel);
+        xAxis.setMinorTickCount(0);
+        xAxis.setAutoRanging(false);
+        DefaultNumericAxis yAxis = new DefaultNumericAxis(yLabel);
+        yAxis.setForceZeroInRange(true);
+        XYChart chart = new XYChart(xAxis, yAxis);
+        chart.setLegendVisible(false);
+        ErrorDataSetRenderer renderer = new ErrorDataSetRenderer();
+        renderer.setDrawBars(true);
+        renderer.setShiftBar(false);
+        renderer.setDynamicBarWidth(false);
+        renderer.setBarWidth(24);
+        renderer.setDrawMarker(false);
+        renderer.setPolyLineStyle(LineStyle.NONE);
+        chart.getRenderers().setAll(renderer);
         return chart;
     }
 
