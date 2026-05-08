@@ -57,6 +57,14 @@ public final class ChartFactory {
         return buildChart("Year", "Authors", sets.toArray(new io.fair_acc.dataset.DataSet[0]));
     }
 
+    public static XYChart emptyLineChart(String xLabel, String yLabel) {
+        DefaultNumericAxis xAxis = new DefaultNumericAxis(xLabel);
+        DefaultNumericAxis yAxis = new DefaultNumericAxis(yLabel);
+        XYChart chart = new XYChart(xAxis, yAxis);
+        chart.getRenderers().setAll(new ErrorDataSetRenderer());
+        return chart;
+    }
+
     private static XYChart buildChart(String xLabel, String yLabel, io.fair_acc.dataset.DataSet... datasets) {
         DefaultNumericAxis xAxis = new DefaultNumericAxis(xLabel);
         DefaultNumericAxis yAxis = new DefaultNumericAxis(yLabel);

@@ -51,6 +51,11 @@
                         </TableView>
                     </content>
                 </Tab>
+                <Tab text="Linecharts" closable="false">
+                    <content>
+                        <fx:include source="LinechartsTab.fxml"/>
+                    </content>
+                </Tab>
             </tabs>
         </TabPane>
     </center>

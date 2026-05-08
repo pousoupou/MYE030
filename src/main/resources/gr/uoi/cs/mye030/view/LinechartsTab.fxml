@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="gr.uoi.cs.mye030.view.LinechartsTabController"
+      spacing="10.0" styleClass="linecharts-tab">
+    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+    <HBox spacing="6" alignment="CENTER_LEFT">
+        <Label text="Mode:"/>
+        <fx:define>
+            <ToggleGroup fx:id="modeGroup"/>
+        </fx:define>
+        <ToggleButton fx:id="journalsToggle" text="Journals" toggleGroup="$modeGroup" selected="true"/>
+        <ToggleButton fx:id="conferencesToggle" text="Conferences" toggleGroup="$modeGroup"/>
+    </HBox>
+
+    <Label text="Articles per Year (selected entities)" styleClass="profile-section"/>
+    <HBox spacing="10" VBox.vgrow="ALWAYS">
+        <VBox spacing="6" prefWidth="280" minWidth="240">
+            <TextField fx:id="entitySearchField" promptText="Search..."/>
+            <ListView fx:id="entityListView" VBox.vgrow="ALWAYS"/>
+        </VBox>
+        <StackPane fx:id="entitiesChartContainer" HBox.hgrow="ALWAYS" minHeight="240"/>
+    </HBox>
+
+    <Label text="Active per Category by Year" styleClass="profile-section"/>
+    <HBox spacing="10" VBox.vgrow="ALWAYS">
+        <VBox spacing="6" prefWidth="280" minWidth="240">
+            <TextField fx:id="categorySearchField" promptText="Search categories..."/>
+            <ListView fx:id="categoryListView" VBox.vgrow="ALWAYS"/>
+        </VBox>
+        <StackPane fx:id="categoriesChartContainer" HBox.hgrow="ALWAYS" minHeight="240"/>
+    </HBox>
+</VBox>

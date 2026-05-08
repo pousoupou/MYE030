@@ -2,9 +2,11 @@ package gr.uoi.cs.mye030.repository;
 
 import gr.uoi.cs.mye030.model.Conference;
 import gr.uoi.cs.mye030.model.FilterCriteria;
+import gr.uoi.cs.mye030.service.ChartData.MultiYearSeries;
 import gr.uoi.cs.mye030.service.ChartData.ProfileStats;
 import gr.uoi.cs.mye030.service.ChartData.YearlyAuthorCounts;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -18,4 +20,10 @@ public interface ConferenceRepository {
     List<YearlyAuthorCounts> authorsPerYear(int conferenceId, FilterCriteria f);
 
     ProfileStats profileStats(int conferenceId, FilterCriteria f);
+
+    List<MultiYearSeries> articlesPerYearForConferences(Collection<Integer> conferenceIds, FilterCriteria f);
+
+    List<MultiYearSeries> activeConferencesByPrimaryForPerYear(Collection<String> primaryFoRs, FilterCriteria f);
+
+    List<String> distinctPrimaryFoRs();
 }

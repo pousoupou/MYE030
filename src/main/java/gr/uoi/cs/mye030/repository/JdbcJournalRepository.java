@@ -3,7 +3,9 @@ package gr.uoi.cs.mye030.repository;
 import gr.uoi.cs.mye030.db.DatabaseConnectionManager;
 import gr.uoi.cs.mye030.model.FilterCriteria;
 import gr.uoi.cs.mye030.model.Journal;
+import gr.uoi.cs.mye030.service.ChartData.MultiYearSeries;
 import gr.uoi.cs.mye030.service.ChartData.ProfileStats;
+import gr.uoi.cs.mye030.service.ChartData.YearCount;
 import gr.uoi.cs.mye030.service.ChartData.YearlyAuthorCounts;
 
 import java.sql.Connection;
@@ -11,6 +13,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -201,5 +205,115 @@ public final class JdbcJournalRepository implements JournalRepository {
         }
 
         return new ProfileStats(firstYear, lastYear, totalArticles, distinctAuthors, totalAuthors);
+    }
+
+    @Override
+    public List<MultiYearSeries> articlesPerYearForJournals(Collection<Integer> journalIds, FilterCriteria f) {
+        if (journalIds == null || journalIds.isEmpty()) return List.of();
+        SqlFilter sf = SqlFilter.forArticleView(f, "v", true);
+        String where = sf.whereClause();
+        String idsList = repeatPlaceholders(journalIds.size());
+        String composed = (where.isEmpty() ? " WHERE " : where + " AND ")
+                + "v.journal_id IN (" + idsList + ")";
+        String sql = "SELECT v.journal_id AS jid, j.title AS jtitle, v.year_pub AS y, COUNT(*) AS n "
+                + "FROM v_journal_articles_per_year v"
+                + " JOIN journals j ON j.id = v.journal_id"
+                + composed
+                + " GROUP BY v.journal_id, j.title, v.year_pub"
+                + " ORDER BY j.title, y";
+        try (Connection c = connections.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            int idx = sf.bindStartingAt(ps, 1);
+            for (Integer id : journalIds) ps.setInt(idx++, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                return collectSeriesById(rs);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("articlesPerYearForJournals failed", e);
+        }
+    }
+
+    @Override
+    public List<MultiYearSeries> activeJournalsBySubjectAreaPerYear(Collection<String> subjectAreas, FilterCriteria f) {
+        if (subjectAreas == null || subjectAreas.isEmpty()) return List.of();
+        SqlFilter sf = SqlFilter.forArticleView(f, "v", true);
+        String where = sf.whereClause();
+        String catList = repeatPlaceholders(subjectAreas.size());
+        String composed = (where.isEmpty() ? " WHERE " : where + " AND ")
+                + "j.best_subject_area IN (" + catList + ")";
+        String sql = "SELECT j.best_subject_area AS cat, v.year_pub AS y, COUNT(DISTINCT v.journal_id) AS n "
+                + "FROM v_journal_articles_per_year v"
+                + " JOIN journals j ON j.id = v.journal_id"
+                + composed
+                + " GROUP BY j.best_subject_area, v.year_pub"
+                + " ORDER BY j.best_subject_area, y";
+        try (Connection c = connections.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            int idx = sf.bindStartingAt(ps, 1);
+            for (String s : subjectAreas) ps.setString(idx++, s);
+            try (ResultSet rs = ps.executeQuery()) {
+                return collectSeriesByName(rs);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("activeJournalsBySubjectAreaPerYear failed", e);
+        }
+    }
+
+    @Override
+    public List<String> distinctSubjectAreas() {
+        String sql = "SELECT DISTINCT best_subject_area FROM journals "
+                + "WHERE best_subject_area IS NOT NULL AND best_subject_area <> '' "
+                + "ORDER BY best_subject_area";
+        try (Connection c = connections.get();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            List<String> out = new ArrayList<>();
+            while (rs.next()) out.add(rs.getString(1));
+            return out;
+        } catch (SQLException e) {
+            throw new IllegalStateException("distinctSubjectAreas failed", e);
+        }
+    }
+
+    private static List<MultiYearSeries> collectSeriesById(ResultSet rs) throws SQLException {
+        Map<Integer, String> names = new LinkedHashMap<>();
+        Map<Integer, List<YearCount>> points = new LinkedHashMap<>();
+        while (rs.next()) {
+            int id = rs.getInt(1);
+            String name = rs.getString(2);
+            int y = rs.getInt(3);
+            long n = rs.getLong(4);
+            names.putIfAbsent(id, name);
+            points.computeIfAbsent(id, k -> new ArrayList<>()).add(new YearCount(y, n));
+        }
+        List<MultiYearSeries> out = new ArrayList<>(names.size());
+        for (Map.Entry<Integer, String> e : names.entrySet()) {
+            out.add(new MultiYearSeries(e.getValue(), Collections.unmodifiableList(points.get(e.getKey()))));
+        }
+        return out;
+    }
+
+    private static List<MultiYearSeries> collectSeriesByName(ResultSet rs) throws SQLException {
+        Map<String, List<YearCount>> points = new LinkedHashMap<>();
+        while (rs.next()) {
+            String name = rs.getString(1);
+            int y = rs.getInt(2);
+            long n = rs.getLong(3);
+            points.computeIfAbsent(name, k -> new ArrayList<>()).add(new YearCount(y, n));
+        }
+        List<MultiYearSeries> out = new ArrayList<>(points.size());
+        for (Map.Entry<String, List<YearCount>> e : points.entrySet()) {
+            out.add(new MultiYearSeries(e.getKey(), Collections.unmodifiableList(e.getValue())));
+        }
+        return out;
+    }
+
+    private static String repeatPlaceholders(int n) {
+        StringBuilder sb = new StringBuilder(n * 2);
+        for (int i = 0; i < n; i++) {
+            if (i > 0) sb.append(',');
+            sb.append('?');
+        }
+        return sb.toString();
     }
 }

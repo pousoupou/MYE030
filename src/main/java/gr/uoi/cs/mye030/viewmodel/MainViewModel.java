@@ -32,6 +32,7 @@ public final class MainViewModel {
     private final ObservableList<Conference> conferences = FXCollections.observableArrayList();
     private final ObservableList<AuthorListRow> authors = FXCollections.observableArrayList();
     private final CopyOnWriteArrayList<Consumer<FilterCriteria>> profileRefreshers = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<Consumer<FilterCriteria>> filterListeners = new CopyOnWriteArrayList<>();
     private FilterCriteria lastFilter = FilterCriteria.empty();
     private IntConsumer yearProfileOpener;
     private Consumer<Author> authorProfileOpener;
@@ -49,6 +50,9 @@ public final class MainViewModel {
 
     public void registerProfileRefresher(Consumer<FilterCriteria> r) { profileRefreshers.add(r); }
     public void deregisterProfileRefresher(Consumer<FilterCriteria> r) { profileRefreshers.remove(r); }
+
+    public void registerFilterListener(Consumer<FilterCriteria> r) { filterListeners.add(r); }
+    public void deregisterFilterListener(Consumer<FilterCriteria> r) { filterListeners.remove(r); }
 
     public void setYearProfileOpener(IntConsumer opener) { this.yearProfileOpener = opener; }
     public void openYearProfile(int year) {
@@ -74,6 +78,7 @@ public final class MainViewModel {
             runIntoList(conferences, () -> queryService.findConferences(f));
         }
         for (Consumer<FilterCriteria> r : profileRefreshers) r.accept(f);
+        for (Consumer<FilterCriteria> r : filterListeners) r.accept(f);
     }
 
     public void loadAuthors() {

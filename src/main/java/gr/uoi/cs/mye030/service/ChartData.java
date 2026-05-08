@@ -2,11 +2,15 @@ package gr.uoi.cs.mye030.service;
 
 import gr.uoi.cs.mye030.model.Author;
 
+import java.util.List;
+
 public final class ChartData {
 
     private ChartData() {}
 
     public record YearCount(int year, long count) {}
+
+    public record MultiYearSeries(String name, List<YearCount> points) {}
 
     public record AuthorListRow(Author author, long articleCount) {}
 

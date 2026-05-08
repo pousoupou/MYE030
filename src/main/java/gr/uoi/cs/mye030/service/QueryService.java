@@ -13,6 +13,7 @@ import gr.uoi.cs.mye030.service.ChartData.AuthorListRow;
 import gr.uoi.cs.mye030.service.ChartData.AuthorProfileStats;
 import gr.uoi.cs.mye030.service.ChartData.CategoryCount;
 import gr.uoi.cs.mye030.service.ChartData.CountryCount;
+import gr.uoi.cs.mye030.service.ChartData.MultiYearSeries;
 import gr.uoi.cs.mye030.service.ChartData.ProfileStats;
 import gr.uoi.cs.mye030.service.ChartData.YearCount;
 import gr.uoi.cs.mye030.service.ChartData.YearProfileStats;
@@ -20,6 +21,7 @@ import gr.uoi.cs.mye030.service.ChartData.YearPublication;
 import gr.uoi.cs.mye030.service.ChartData.YearlyAuthorCounts;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -151,6 +153,30 @@ public final class QueryService {
 
     public List<YearPublication> conferencePublicationsForYear(int year) {
         return articles.publicationsForYear(year, ArticleType.CONFERENCE);
+    }
+
+    public List<MultiYearSeries> articlesPerYearForJournals(Collection<Integer> journalIds, FilterCriteria f) {
+        return journals.articlesPerYearForJournals(journalIds, f);
+    }
+
+    public List<MultiYearSeries> articlesPerYearForConferences(Collection<Integer> conferenceIds, FilterCriteria f) {
+        return conferences.articlesPerYearForConferences(conferenceIds, f);
+    }
+
+    public List<MultiYearSeries> activeJournalsBySubjectAreaPerYear(Collection<String> subjectAreas, FilterCriteria f) {
+        return journals.activeJournalsBySubjectAreaPerYear(subjectAreas, f);
+    }
+
+    public List<MultiYearSeries> activeConferencesByPrimaryForPerYear(Collection<String> primaryFoRs, FilterCriteria f) {
+        return conferences.activeConferencesByPrimaryForPerYear(primaryFoRs, f);
+    }
+
+    public List<String> distinctSubjectAreas() {
+        return journals.distinctSubjectAreas();
+    }
+
+    public List<String> distinctPrimaryFoRs() {
+        return conferences.distinctPrimaryFoRs();
     }
 
     private static List<YearCount> toYearCounts(Map<Integer, Long> counts) {
