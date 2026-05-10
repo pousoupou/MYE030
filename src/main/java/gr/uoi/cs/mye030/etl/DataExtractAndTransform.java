@@ -45,6 +45,7 @@ public class DataExtractAndTransform {
         System.out.println("ETL finished. Output in " + OUT_DIR);
     }
 
+    // Method to extract the authors in the correct format to the output file
     private static Map<String, Integer> loadAuthors() throws IOException {
         Set<String> authors = new LinkedHashSet<>();
 
@@ -67,6 +68,7 @@ public class DataExtractAndTransform {
         return ids;
     }
 
+    // Method to read, parse, and store in memory the authors
     private static void collectAuthors(String path, Set<String> authors) throws IOException {
         try (BufferedReader r = new BufferedReader(new FileReader(path))) {
             String line;
@@ -77,7 +79,6 @@ public class DataExtractAndTransform {
             while ((line = r.readLine()) != null) {
                 logical.append(line);
                 String record = logical.toString();
-                // simple multi-line record handling: count quotes; if unbalanced, keep reading
                 if (countChar(record, '"') % 2 != 0) {
                     logical.append('\n');
                     continue;
@@ -102,6 +103,7 @@ public class DataExtractAndTransform {
         }
     }
 
+    // Method to extract the articles in the correct format to the output file
     private static void loadArticles(
             Map<String, Integer> authorIds,
             Map<String, Integer> journalIdsByAcronym,
@@ -125,6 +127,7 @@ public class DataExtractAndTransform {
         }
     }
 
+    // Method to read, parse, and store in memory the articles
     private static void processArticles(
             String path,
             char type,
@@ -215,6 +218,7 @@ public class DataExtractAndTransform {
         }
     }
 
+    // Method to extract the journals in the correct format to the output file
     private static Map<String, Integer> loadJournals(int[] nextIdHolder) throws IOException {
         Map<String, Integer> acronymToId = new HashMap<>();
         try (BufferedReader r = new BufferedReader(new FileReader(INPUT_JOURNALS));
@@ -276,12 +280,8 @@ public class DataExtractAndTransform {
         return acronymToId;
     }
 
-    private static void appendUnrankedJournals(
-            Map<String, Integer> acronymToId, int[] nextIdHolder) throws IOException {
-        // Harvest journal titles referenced by input_article.csv (column 10) but
-        // missing from the SCImago ranking source. Tech-report labs like
-        // "GTE Laboratories Incorporated" land here. Stub rows leave rank/
-        // country/best_subject_area/total_docs/total_refs empty (-> NULL on load).
+    // Method to also include the journals that have no ranking in the relevant csv file
+    private static void appendUnrankedJournals(Map<String, Integer> acronymToId, int[] nextIdHolder) throws IOException {
         Map<String, String> newAcronymToTitle = new LinkedHashMap<>();
 
         try (BufferedReader r = new BufferedReader(new FileReader(INPUT_ARTICLE))) {
@@ -309,8 +309,6 @@ public class DataExtractAndTransform {
                 }
                 if (row.size() != maxLength) continue;
 
-                // Mirror processArticles's drop filter so we only register
-                // journals an article will actually reference.
                 String authorsField = row.get(1);
                 if (authorsField.isEmpty() || row.get(10).isEmpty() || row.get(12).isEmpty()
                         || (row.get(23).isEmpty() && row.get(24).isEmpty())) {
@@ -345,6 +343,7 @@ public class DataExtractAndTransform {
         nextIdHolder[0] = nextId;
     }
 
+    // Method to extract the conferences in the correct format to the output file
     private static Map<String, Integer> loadConferences() throws IOException {
         Map<String, Integer> acronymToId = new HashMap<>();
         try (BufferedReader r = new BufferedReader(new FileReader(INPUT_CONFERENCES));
@@ -398,6 +397,7 @@ public class DataExtractAndTransform {
         return acronymToId;
     }
 
+    // Helper method for the special occasion of a title beginning with the token "The"
     private static String normalizeJournalTitle(String s) {
         if (s == null) return null;
         if (s.endsWith(",The")) {
@@ -406,6 +406,7 @@ public class DataExtractAndTransform {
         return s;
     }
 
+    // Helper method to generate a journal's/conference's acronym
     private static String onlyUpper(String s) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
@@ -415,12 +416,18 @@ public class DataExtractAndTransform {
         return sb.toString();
     }
 
+    // Helper method for correctly parsing titles containing special characters like: "
     private static int countChar(String s, char c) {
         int n = 0;
-        for (int i = 0; i < s.length(); i++) if (s.charAt(i) == c) n++;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == c) {
+                n++;
+            }
+        }
         return n;
     }
 
+    // Helper method for correctly parsing csv/tsv lines
     private static List<String> parseCsvLine(String line, char delim) {
         List<String> out = new ArrayList<>();
         StringBuilder cur = new StringBuilder();
@@ -454,10 +461,13 @@ public class DataExtractAndTransform {
     }
 
     private static String csvEscape(String s) {
-        if (s == null) return "";
-        boolean needsQuote = s.indexOf(DELIM) >= 0 || s.indexOf('"') >= 0
-                || s.indexOf('\n') >= 0 || s.indexOf('\r') >= 0;
-        if (!needsQuote) return s;
+        if (s == null) {
+            return "";
+        }
+        boolean needsQuote = s.indexOf(DELIM) >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0 || s.indexOf('\r') >= 0;
+        if (!needsQuote) {
+            return s;
+        }
         return "\"" + s.replace("\"", "\"\"") + "\"";
     }
 }
