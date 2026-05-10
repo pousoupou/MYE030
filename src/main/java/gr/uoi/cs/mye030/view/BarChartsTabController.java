@@ -73,6 +73,8 @@ public final class BarChartsTabController {
     private List<String> currentEntityNames = List.of();
     private XYChart publisherChart;
     private ErrorDataSetRenderer publisherRenderer;
+    private DefaultNumericAxis publisherXAxis;
+    private List<String> currentPublisherNames = List.of();
 
     private FilterCriteria currentFilter = FilterCriteria.empty();
 
@@ -103,6 +105,8 @@ public final class BarChartsTabController {
 
         publisherChart = ChartFactory.emptyGroupedBarChart("Publisher", "Distinct journals");
         publisherRenderer = (ErrorDataSetRenderer) publisherChart.getRenderers().get(0);
+        publisherXAxis = (DefaultNumericAxis) publisherChart.getXAxis();
+        installPublisherTickFormatter(publisherXAxis);
         publisherChartContainer.getChildren().add(publisherChart);
 
         setupEntityList();
@@ -327,23 +331,46 @@ public final class BarChartsTabController {
 
     private void applyPublisherStats(List<PublisherJournalQuarters> rows) {
         publisherRenderer.getDatasets().clear();
-        if (rows == null || rows.isEmpty()) return;
-        DefaultDataSet total = new DefaultDataSet("Total");
+        if (rows == null || rows.isEmpty()) {
+            currentPublisherNames = List.of();
+            return;
+        }
+        List<String> names = new ArrayList<>(rows.size());
+        for (PublisherJournalQuarters r : rows) names.add(r.publisher());
+        currentPublisherNames = names;
+        configureEntityXAxis(publisherXAxis, names.size());
+
         DefaultDataSet q1 = new DefaultDataSet("Q1");
         DefaultDataSet q2 = new DefaultDataSet("Q2");
         DefaultDataSet q3 = new DefaultDataSet("Q3");
         DefaultDataSet q4 = new DefaultDataSet("Q4");
         for (int i = 0; i < rows.size(); i++) {
             PublisherJournalQuarters r = rows.get(i);
-            total.add(i, r.total(), r.publisher());
             q1.add(i, r.q1(), r.publisher());
             q2.add(i, r.q2(), r.publisher());
             q3.add(i, r.q3(), r.publisher());
             q4.add(i, r.q4(), r.publisher());
         }
         List<DataSet> sets = new ArrayList<>();
-        sets.add(total); sets.add(q1); sets.add(q2); sets.add(q3); sets.add(q4);
+        sets.add(q1); sets.add(q2); sets.add(q3); sets.add(q4);
         publisherRenderer.getDatasets().addAll(sets);
+    }
+
+    private void installPublisherTickFormatter(DefaultNumericAxis axis) {
+        axis.setTickLabelFormatter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(Number n) {
+                if (n == null) return "";
+                double v = n.doubleValue();
+                int idx = (int) Math.round(v);
+                if (Math.abs(v - idx) > 1e-6) return "";
+                if (idx < 0 || idx >= currentPublisherNames.size()) return "";
+                return currentPublisherNames.get(idx);
+            }
+
+            @Override
+            public Number fromString(String s) { return null; }
+        });
     }
 
     private <T> void runInto(ObservableList<T> target, Supplier<List<T>> producer, Runnable afterApply) {

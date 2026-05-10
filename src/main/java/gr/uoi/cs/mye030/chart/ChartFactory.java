@@ -54,11 +54,17 @@ public final class ChartFactory {
 
     public static XYChart emptyGroupedBarChart(String xLabel, String yLabel) {
         DefaultNumericAxis xAxis = new DefaultNumericAxis(xLabel);
+        xAxis.setMinorTickCount(0);
+        xAxis.setAutoRanging(false);
         DefaultNumericAxis yAxis = new DefaultNumericAxis(yLabel);
+        yAxis.setForceZeroInRange(true);
         XYChart chart = new XYChart(xAxis, yAxis);
         ErrorDataSetRenderer renderer = new ErrorDataSetRenderer();
         renderer.setDrawBars(true);
         renderer.setShiftBar(true);
+        renderer.setshiftBarOffset(14);
+        renderer.setDynamicBarWidth(false);
+        renderer.setBarWidth(12);
         renderer.setDrawMarker(false);
         renderer.setPolyLineStyle(LineStyle.NONE);
         chart.getRenderers().setAll(renderer);
