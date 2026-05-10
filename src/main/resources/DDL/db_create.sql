@@ -10,13 +10,13 @@ create table if not exists authors (
 
 create table if not exists journals (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    journal_rank INT NOT NULL,
+    journal_rank INT NULL,
     title TEXT NOT NULL,
     acronym VARCHAR(60) NOT NULL,
-    country VARCHAR(60) NOT NULL,
-    best_subject_area VARCHAR(255) NOT NULL,
-    total_docs INT NOT NULL,
-    total_refs INT NOT NULL
+    country VARCHAR(60) NULL,
+    best_subject_area VARCHAR(255) NULL,
+    total_docs INT NULL,
+    total_refs INT NULL
 );
 
 create table if not exists conferences (

@@ -27,12 +27,20 @@ IGNORE 1 LINES
 (id, author_name);
 
 -- journals.csv: id;journal_rank;title;acronym;country;best_subject_area;total_docs;total_refs
+-- journal_rank/country/best_subject_area/total_docs/total_refs are empty for
+-- unranked journals harvested from input_article.csv (e.g. tech-report labs);
+-- map empty string -> NULL so they land cleanly in the relaxed schema.
 LOAD DATA LOCAL INFILE '/home/pousoupou/Documents/MYE030/src/main/resources/data/out/journals.csv'
 INTO TABLE journals
 FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '"' ESCAPED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES
-(id, journal_rank, title, acronym, country, best_subject_area, total_docs, total_refs);
+(id, @rank, title, acronym, @country, @bsa, @tdocs, @trefs)
+SET journal_rank      = NULLIF(@rank, ''),
+    country           = NULLIF(@country, ''),
+    best_subject_area = NULLIF(@bsa, ''),
+    total_docs        = NULLIF(@tdocs, ''),
+    total_refs        = NULLIF(@trefs, '');
 
 -- conferences.csv: id;conf_name;acronym;conf_rank;primaryFoR
 LOAD DATA LOCAL INFILE '/home/pousoupou/Documents/MYE030/src/main/resources/data/out/conferences.csv'

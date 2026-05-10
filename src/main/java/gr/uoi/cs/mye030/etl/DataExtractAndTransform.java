@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -14,8 +15,8 @@ import java.util.Set;
 
 public class DataExtractAndTransform {
 
-    private static final String DATA_DIR = "../data/";
-    private static final String OUT_DIR = "../data/out/";
+    private static final String DATA_DIR = "../resources/data/";
+    private static final String OUT_DIR = "../resources/data/out/";
 
     private static final String INPUT_ARTICLE = DATA_DIR + "input_article.csv";
     private static final String INPUT_INPROCEEDINGS = DATA_DIR + "input_inproceedings.csv";
@@ -35,7 +36,9 @@ public class DataExtractAndTransform {
         new java.io.File(OUT_DIR).mkdirs();
 
         Map<String, Integer> authorIds = loadAuthors();
-        Map<String, Integer> journalIdsByAcronym = loadJournals();
+        int[] nextJournalId = { 1 };
+        Map<String, Integer> journalIdsByAcronym = loadJournals(nextJournalId);
+        appendUnrankedJournals(journalIdsByAcronym, nextJournalId);
         Map<String, Integer> conferenceIdsByAcronym = loadConferences();
         loadArticles(authorIds, journalIdsByAcronym, conferenceIdsByAcronym);
 
@@ -212,7 +215,7 @@ public class DataExtractAndTransform {
         }
     }
 
-    private static Map<String, Integer> loadJournals() throws IOException {
+    private static Map<String, Integer> loadJournals(int[] nextIdHolder) throws IOException {
         Map<String, Integer> acronymToId = new HashMap<>();
         try (BufferedReader r = new BufferedReader(new FileReader(INPUT_JOURNALS));
              BufferedWriter w = new BufferedWriter(new FileWriter(OUT_JOURNALS))) {
@@ -223,7 +226,7 @@ public class DataExtractAndTransform {
             String line;
             boolean headerSeen = false;
             int maxLength = -1;
-            int nextId = 1;
+            int nextId = nextIdHolder[0];
             StringBuilder logical = new StringBuilder();
 
             while ((line = r.readLine()) != null) {
@@ -266,8 +269,78 @@ public class DataExtractAndTransform {
                 w.newLine();
             }
             System.out.println("Wrote " + (nextId - 1) + " journals");
+            nextIdHolder[0] = nextId;
         }
         return acronymToId;
+    }
+
+    private static void appendUnrankedJournals(
+            Map<String, Integer> acronymToId, int[] nextIdHolder) throws IOException {
+        // Harvest journal titles referenced by input_article.csv (column 10) but
+        // missing from the SCImago ranking source. Tech-report labs like
+        // "GTE Laboratories Incorporated" land here. Stub rows leave rank/
+        // country/best_subject_area/total_docs/total_refs empty (-> NULL on load).
+        Map<String, String> newAcronymToTitle = new LinkedHashMap<>();
+
+        try (BufferedReader r = new BufferedReader(new FileReader(INPUT_ARTICLE))) {
+            String line;
+            int maxLength = -1;
+            boolean headerSeen = false;
+            StringBuilder logical = new StringBuilder();
+
+            while ((line = r.readLine()) != null) {
+                logical.append(line);
+                String record = logical.toString();
+                if (countChar(record, '"') % 2 != 0) {
+                    logical.append('\n');
+                    continue;
+                }
+                logical.setLength(0);
+
+                List<String> row = parseCsvLine(record, DELIM);
+                if (!headerSeen) {
+                    if (!row.isEmpty() && "id".equals(row.get(0))) {
+                        maxLength = row.size();
+                        headerSeen = true;
+                    }
+                    continue;
+                }
+                if (row.size() != maxLength) continue;
+
+                // Mirror processArticles's drop filter so we only register
+                // journals an article will actually reference.
+                String authorsField = row.get(1);
+                if (authorsField.isEmpty() || row.get(10).isEmpty() || row.get(12).isEmpty()
+                        || (row.get(23).isEmpty() && row.get(24).isEmpty())) {
+                    continue;
+                }
+
+                String journalTitle = row.get(10);
+                String acronym = onlyUpper(journalTitle);
+                if (acronym.isEmpty()) continue;
+                if (acronymToId.containsKey(acronym)) continue;
+                newAcronymToTitle.putIfAbsent(acronym, journalTitle);
+            }
+        }
+
+        if (newAcronymToTitle.isEmpty()) {
+            System.out.println("No unranked journals to append");
+            return;
+        }
+
+        int nextId = nextIdHolder[0];
+        try (BufferedWriter w = new BufferedWriter(new FileWriter(OUT_JOURNALS, true))) {
+            for (Map.Entry<String, String> e : newAcronymToTitle.entrySet()) {
+                String acronym = e.getKey();
+                String title = e.getValue();
+                int id = nextId++;
+                acronymToId.put(acronym, id);
+                w.write(id + ";;" + csvEscape(title) + ";" + csvEscape(acronym) + ";;;;");
+                w.newLine();
+            }
+        }
+        System.out.println("Appended " + newAcronymToTitle.size() + " unranked journals");
+        nextIdHolder[0] = nextId;
     }
 
     private static Map<String, Integer> loadConferences() throws IOException {
