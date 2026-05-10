@@ -166,9 +166,8 @@ public final class JdbcArticleRepository implements ArticleRepository {
 
     @Override
     public List<String> distinctJournalPublishers() {
-        String sql = "SELECT DISTINCT publisher FROM articles "
+        String sql = "SELECT DISTINCT publisher FROM journals "
                 + "WHERE publisher IS NOT NULL AND publisher <> '' "
-                + "AND article_type = 'J' AND journal_id IS NOT NULL "
                 + "ORDER BY publisher";
         try (Connection c = connections.get();
              PreparedStatement ps = c.prepareStatement(sql);
@@ -195,19 +194,20 @@ public final class JdbcArticleRepository implements ArticleRepository {
             if (i > 0) placeholders.append(',');
             placeholders.append('?');
         }
-        StringBuilder where = new StringBuilder("WHERE a.article_type = 'J' AND a.journal_id IS NOT NULL "
-                + "AND a.publisher IN (").append(placeholders).append(")");
+        StringBuilder where = new StringBuilder("WHERE a.article_type = 'J' "
+                + "AND j.publisher IN (").append(placeholders).append(")");
         for (String yc : yearClauses) where.append(" AND ").append(yc);
 
-        String sql = "SELECT a.publisher AS p, "
-                + "COUNT(DISTINCT a.journal_id) AS total, "
-                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 1 AND 3 THEN a.journal_id END) AS q1, "
-                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 4 AND 6 THEN a.journal_id END) AS q2, "
-                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 7 AND 9 THEN a.journal_id END) AS q3, "
-                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 10 AND 12 THEN a.journal_id END) AS q4 "
+        String sql = "SELECT j.publisher AS p, "
+                + "COUNT(DISTINCT j.id) AS total, "
+                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 1 AND 3 THEN j.id END) AS q1, "
+                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 4 AND 6 THEN j.id END) AS q2, "
+                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 7 AND 9 THEN j.id END) AS q3, "
+                + "COUNT(DISTINCT CASE WHEN MONTH(a.date_pub) BETWEEN 10 AND 12 THEN j.id END) AS q4 "
                 + "FROM articles a "
+                + "JOIN journals j ON j.id = a.journal_id "
                 + where
-                + " GROUP BY a.publisher ORDER BY total DESC, a.publisher";
+                + " GROUP BY j.publisher ORDER BY total DESC, j.publisher";
         try (Connection c = connections.get();
              PreparedStatement ps = c.prepareStatement(sql)) {
             int idx = 1;

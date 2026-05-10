@@ -16,7 +16,8 @@ create table if not exists journals (
     country VARCHAR(60) NULL,
     best_subject_area VARCHAR(255) NULL,
     total_docs INT NULL,
-    total_refs INT NULL
+    total_refs INT NULL,
+    publisher VARCHAR(255) NULL
 );
 
 create table if not exists conferences (

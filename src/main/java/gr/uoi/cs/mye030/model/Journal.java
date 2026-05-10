@@ -8,5 +8,6 @@ public record Journal(
         String country,
         String bestSubjectArea,
         int totalDocs,
-        int totalRefs
+        int totalRefs,
+        String publisher
 ) {}

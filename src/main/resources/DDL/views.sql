@@ -84,7 +84,7 @@ left join journals j on j.id = a.journal_id;
 drop view if exists v_journals_full;
 create view v_journals_full as
 select id, journal_rank, title, acronym, country,
-       best_subject_area, total_docs, total_refs
+       best_subject_area, total_docs, total_refs, publisher
 from journals;
 
 drop view if exists v_conferences_full;

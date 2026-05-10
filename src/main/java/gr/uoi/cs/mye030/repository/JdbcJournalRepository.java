@@ -42,7 +42,7 @@ public final class JdbcJournalRepository implements JournalRepository {
     @Override
     public List<Journal> findByCriteria(FilterCriteria f) {
         SqlFilter sf = SqlFilter.forJournalView(f, "v");
-        String sql = "SELECT v.id, v.journal_rank, v.title, v.acronym, v.country, v.best_subject_area, v.total_docs, v.total_refs "
+        String sql = "SELECT v.id, v.journal_rank, v.title, v.acronym, v.country, v.best_subject_area, v.total_docs, v.total_refs, v.publisher "
                 + "FROM v_journals_full v" + sf.whereClause() + " ORDER BY v.journal_rank";
         try (Connection c = connections.get();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -58,7 +58,8 @@ public final class JdbcJournalRepository implements JournalRepository {
                             rs.getString("country"),
                             rs.getString("best_subject_area"),
                             rs.getInt("total_docs"),
-                            rs.getInt("total_refs")));
+                            rs.getInt("total_refs"),
+                            rs.getString("publisher")));
                 }
                 return out;
             }

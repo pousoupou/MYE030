@@ -220,7 +220,7 @@ public class DataExtractAndTransform {
         try (BufferedReader r = new BufferedReader(new FileReader(INPUT_JOURNALS));
              BufferedWriter w = new BufferedWriter(new FileWriter(OUT_JOURNALS))) {
 
-            w.write("id;journal_rank;title;acronym;country;best_subject_area;total_docs;total_refs");
+            w.write("id;journal_rank;title;acronym;country;best_subject_area;total_docs;total_refs;publisher");
             w.newLine();
 
             String line;
@@ -254,6 +254,7 @@ public class DataExtractAndTransform {
                 String bestSubjectArea = row.get(9);
                 String totalDocsStr = row.get(11);
                 String totalRefsStr = row.get(13);
+                String publisher = row.size() > 18 ? row.get(18) : "";
 
                 if (rankStr.isEmpty() || title.isEmpty() || country.isEmpty()
                         || bestSubjectArea.isEmpty() || totalDocsStr.isEmpty() || totalRefsStr.isEmpty()) {
@@ -265,7 +266,8 @@ public class DataExtractAndTransform {
                 acronymToId.putIfAbsent(acronym, journalId);
                 w.write(journalId + ";" + rankStr + ";" + csvEscape(title) + ";"
                         + csvEscape(acronym) + ";" + csvEscape(country) + ";"
-                        + csvEscape(bestSubjectArea) + ";" + totalDocsStr + ";" + totalRefsStr);
+                        + csvEscape(bestSubjectArea) + ";" + totalDocsStr + ";" + totalRefsStr
+                        + ";" + csvEscape(publisher));
                 w.newLine();
             }
             System.out.println("Wrote " + (nextId - 1) + " journals");
@@ -335,7 +337,7 @@ public class DataExtractAndTransform {
                 String title = e.getValue();
                 int id = nextId++;
                 acronymToId.put(acronym, id);
-                w.write(id + ";;" + csvEscape(title) + ";" + csvEscape(acronym) + ";;;;");
+                w.write(id + ";;" + csvEscape(title) + ";" + csvEscape(acronym) + ";;;;;");
                 w.newLine();
             }
         }
