@@ -61,6 +61,11 @@
                         <fx:include source="BarChartsTab.fxml"/>
                     </content>
                 </Tab>
+                <Tab text="ScatterPlots" closable="false">
+                    <content>
+                        <fx:include source="ScatterPlotsTab.fxml"/>
+                    </content>
+                </Tab>
             </tabs>
         </TabPane>
     </center>

@@ -4,6 +4,7 @@ import gr.uoi.cs.mye030.service.ChartData.YearCount;
 import gr.uoi.cs.mye030.service.ChartData.YearlyAuthorCounts;
 import io.fair_acc.chartfx.XYChart;
 import io.fair_acc.chartfx.axes.spi.DefaultNumericAxis;
+import io.fair_acc.chartfx.renderer.ErrorStyle;
 import io.fair_acc.chartfx.renderer.LineStyle;
 import io.fair_acc.chartfx.renderer.spi.ErrorDataSetRenderer;
 import io.fair_acc.dataset.spi.DoubleDataSet;
@@ -30,6 +31,19 @@ public final class ChartFactory {
         DefaultNumericAxis yAxis = new DefaultNumericAxis(yLabel);
         XYChart chart = new XYChart(xAxis, yAxis);
         chart.getRenderers().setAll(new ErrorDataSetRenderer());
+        return chart;
+    }
+
+    public static XYChart emptyScatterChart(String xLabel, String yLabel) {
+        DefaultNumericAxis xAxis = new DefaultNumericAxis(xLabel);
+        DefaultNumericAxis yAxis = new DefaultNumericAxis(yLabel);
+        XYChart chart = new XYChart(xAxis, yAxis);
+        ErrorDataSetRenderer renderer = new ErrorDataSetRenderer();
+        renderer.setDrawMarker(true);
+        renderer.setPolyLineStyle(LineStyle.NONE);
+        renderer.setDrawBars(false);
+        renderer.setErrorStyle(ErrorStyle.NONE);
+        chart.getRenderers().setAll(renderer);
         return chart;
     }
 

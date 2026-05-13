@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="gr.uoi.cs.mye030.view.ScatterPlotsTabController"
+      spacing="10.0" styleClass="scatterplots-tab">
+    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+    <Label text="Journals: total documents vs total references" styleClass="profile-section"/>
+    <StackPane fx:id="scatterChartContainer" VBox.vgrow="ALWAYS" minHeight="320"/>
+</VBox>
